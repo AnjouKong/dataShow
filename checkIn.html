@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>酒店房间入住信息</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      /*background: #031d41;*/
+      background-image: url("images/bg.jpg");
+      background-size: cover;
+    }
+    html, body, div, canvas {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+    <!--页面布局开始-->
+    <!-- 为 zrender 准备一个具备大小（宽高）的 DOM background: #031d41; -->
+    <div id="main" style="width: 900px;height:800px;"></div>
+
+    <!--页面布局结束-->
+    <script src="libs/zrender-4.0.5/zrender.js"></script>
+    <script src="js/FloorShape.js"></script>
+    <script type="text/javascript">
+      // 基于准备好的dom，初始化Zrender实例
+      var myZrender = zrender.init(document.getElementById('main'));
+      // 全局配置
+      var Config = {
+        zW: myZrender.getWidth(),
+        zH: myZrender.getHeight(),
+        roomW: 50,
+        roomH: 24,
+        roomBetween: 12,
+      };
+      // 楼房数据
+      var floorObj;
+      var roomData = [
+        [  0, 1, 0,-1, -1, 1, 2, 1],
+        [  2, 1, 0, 2, 0, 1, 0, 1],
+        [  0, 2, 1, 1, 0, 1, 2, 0],
+        [  1, 0, 0, 1, 1, 0, 1, 1],
+        [  1, 0, 2, 1, 1, 1, 1, 2],
+        [  1, 2, 0, 1, 1, 0, 2, 0],
+        [ -1, 2, 0, 2, 1, 1, 2,-1],
+        [ -1, 2, 0, 2, 1, 1, 2,-1],
+        [ -1, 2, 0, 2, 1, 1, 2,-1],
+        [ -1, 2, 0, 2, 1, 1, 2,-1],
+        [ -1, 2, 0, 2, 1, 1, 2,-1],
+        [ -1, 2, 0, 2, 1, 1, 2,-1],
+      ];
+
+      showData(roomData);
+      // 显示
+      function showData(data){
+        floorObj = renderRooms(data, Config.roomW, Config.roomH, Config.roomBetween,getStyleByDataType);
+        var rect = floorObj.roomsGroup.getBoundingRect();
+        floorObj.roomsGroup.position[0] = (Config.zW - rect.width - Config.roomBetween - 70)/2;
+        floorObj.roomsGroup.position[1] = 200;
+
+        floorObj.floorFront = createFloorFront(floorObj.roomsGroup.position, rect, Config.roomBetween, '#166873');
+        floorObj.floorAbove = createFloorAbove(floorObj.roomsGroup.position, rect, Config.roomBetween, 70,40, '#166873');
+        floorObj.floorRight = createFloorRight(floorObj.roomsGroup.position, rect, Config.roomBetween, 70,-40, '#166873');
+        myZrender.add(floorObj.roomsGroup);
+        myZrender.add(floorObj.floorFront);
+        myZrender.add(floorObj.floorAbove);
+        myZrender.add(floorObj.floorRight);
+
+        var title = createTitle('酒店房间入住信息', 50 , 20);
+        myZrender.add(title);
+        var tipGroup = createTip(Config.roomW, Config.roomH, Config.roomBetween);
+        tipGroup.position[0] = 420;
+        tipGroup.position[1] = 26;
+        myZrender.add(tipGroup);
+      }
+
+
+      // 根据数据类型获取样式数据  0两个房间都未入住  1 一个房间入住  2 两个房间入住   -1 此处没有房间
+      function getStyleByDataType(value){
+        var styleTmp = {};
+        switch (value) {
+          case 0 :
+            styleTmp = {
+              stroke: '#17fff3',
+              fill: '#fff',
+            };
+            break;
+          case 1 :
+            styleTmp = {
+              stroke: '#17fff3',
+              fill: '#14ffff',
+            };
+            break;
+          case 2 :
+            styleTmp = {
+              stroke: '#17fff3',
+              fill: '#f01f60',
+            };
+            break;
+        }
+        return styleTmp;
+      }
+
+      function createTip(roomW, roomH, roomBetwen) {
+        var tipGroup = new zrender.Group();
+        var tip1_rect = new zrender.Rect({
+          shape: {
+            x: 0,
+            y: 0,
+            width: roomW,
+            height: roomH,
+          },
+          style: getStyleByDataType(0),
+        });
+        tipGroup.add(tip1_rect);
+        tipGroup.add(createTipText('未入住', roomW + roomBetwen , roomH/2));
+
+        var x2 = roomW + 100;
+        var y2 = roomH + roomBetwen*2;
+        var tip2_rect = new zrender.Rect({
+          shape: {
+            x: x2,
+            y: 0,
+            width: roomW,
+            height: roomH,
+          },
+          style: getStyleByDataType(1),
+        });
+        tipGroup.add(tip2_rect);
+        // tipGroup.add(createTipText('一面房间入住', roomW + roomBetwen, y2 + roomH/2));
+        tipGroup.add(createTipText('一面房间入住', x2 + roomW + roomBetwen,  roomH/2));
+
+        var x3 = x2 + roomW + 140;
+        var y3 = y2 + roomH + roomBetwen*2;
+        var tip3_rect = new zrender.Rect({
+          shape: {
+            x: x3,
+            y: 0,
+            width: roomW,
+            height: roomH,
+          },
+          style: getStyleByDataType(2),
+        });
+        tipGroup.add(tip3_rect);
+        tipGroup.add(createTipText('两面房间入住', x3 + roomW + roomBetwen, roomH/2));
+
+        return tipGroup;
+      }
+    </script>
+</body>
+</html>
